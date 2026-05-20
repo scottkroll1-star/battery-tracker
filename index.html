@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Battery Conversion Tracker</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-dark: #1E1E1E;
+            --knicks-blue: #006BB6;
+            --knicks-orange: #F58426;
+            --text-light: #FFFFFF;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Modal Styles */
+        #scheduleModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: var(--card-dark);
+            border: 2px solid var(--knicks-blue);
+            border-radius: 12px;
+            padding: 20px;
+            width: 85%;
+            max-width: 400px;
+        }
+        .modal-title {
+            color: var(--knicks-orange);
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .day-checkbox input {
+            margin-right: 15px;
+            transform: scale(1.5);
+            accent-color: var(--knicks-orange);
+        }
+        .save-btn {
+            background-color: var(--knicks-blue);
+            color: var(--text-light);
+            border: none;
+            padding: 12px;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        /* Main App Styles */
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .header-title {
+            color: var(--knicks-orange);
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .header-cycle {
+            color: var(--knicks-blue);
+            font-weight: bold;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .card {
+            background-color: var(--card-dark);
+            border-radius: 12px;
+            padding: 20px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .section-title {
+            color: var(--knicks-orange);
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .input-group label {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            background-color: transparent;
+            border: 2px solid var(--knicks-blue);
+            border-radius: 20px;
+            color: var(--knicks-orange);
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px 0;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .display-value {
+            color: var(--knicks-orange);
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+        .display-value.blue-text {
+            color: var(--knicks-blue);
+        }
+        .display-label {
+            color: var(--knicks-orange);
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .display-label.blue-text {
+            color: var(--knicks-blue);
+        }
+
+        .edit-link {
+            display: block;
+            color: var(--knicks-blue);
+            text-align: center;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="scheduleModal">
+        <div class="modal-content">
+            <div class="modal-title">SELECT DAYS WORKED</div>
+            <div id="daysCheckboxes">
+                </div>
+            <button class="save-btn" onclick="saveSchedule()">Save Schedule</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="header-title">BATTERY CONVERSION TRACKER</div>
+        <div class="header-cycle" id="cycleDisplay">MAY 1, 2026 - MAY 31, 2026</div>
+
+        <div class="card">
+            <div class="section-title">TIME & SCHEDULE</div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Future Days Off</label>
+                    <input type="number" id="futureOff" value="0" inputmode="numeric">
+                </div>
+                <div class="input-group">
+                    <label>Future OT Shifts</label>
+                    <input type="number" id="futureOT" value="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="display-value" id="shiftsRemaining">0</div>
+            <div class="display-label">SHIFTS REMAINING</div>
+            <a class="edit-link" onclick="openModal()">Edit Base Schedule</a>
+        </div>
+
+        <div class="card">
+            <div class="section-title">METRICS & GOALS</div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Current BREs</label>
+                    <input type="number" id="currentBRE" value="0" inputmode="numeric">
+                </div>
+                <div class="input-group">
+                    <label>Batteries Sold</label>
+                    <input type="number" id="currentSold" value="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="display-value blue-text" id="conversionRate">0.00%</div>
+            <div class="display-label blue-text" style="margin-bottom: 25px;">CONVERSION RATE</div>
+            
+            <div class="display-value" id="batteriesNeeded">0</div>
+            <div class="display-label">BATTERIES NEEDED FOR 40% <span id="targetMetIcon" style="display:none;">✔</span></div>
+        </div>
+    </div>
+
+    <script>
+        // Data variables
+        let workDays = []; // 0=Sun, 1=Mon...
+        
+        // Element bindings
+        const inputs = ['futureOff', 'futureOT', 'currentBRE', 'currentSold'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                saveData();
+                calculateMetrics();
+            });
+        });
+
+        // Initialize App
+        function initApp() {
+            setupModalCheckboxes();
+            checkMonthCycle();
+            loadData();
+            
+            if (workDays.length === 0) {
+                openModal();
+            } else {
+                calculateMetrics();
+            }
+        }
+
+        // Logic 1: Month Cycle Management
+        function checkMonthCycle() {
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const cycleText = `${monthNames[now.getMonth()]} 1, ${now.getFullYear()} - ${monthNames[lastDay.getMonth()]} ${lastDay.getDate()}, ${lastDay.getFullYear()}`;
+            document.getElementById('cycleDisplay').innerText = cycleText;
+
+            // Check if month rolled over to wipe stats
+            const currentMonthStr = `${now.getFullYear()}-${now.getMonth()}`;
+            const savedMonthStr = localStorage.getItem('bt_lastMonth');
+            
+            if (savedMonthStr && savedMonthStr !== currentMonthStr) {
+                // Wipe data, keep schedule
+                localStorage.setItem('bt_futureOff', '0');
+                localStorage.setItem('bt_futureOT', '0');
+                localStorage.setItem('bt_currentBRE', '0');
+                localStorage.setItem('bt_currentSold', '0');
+            }
+            localStorage.setItem('bt_lastMonth', currentMonthStr);
+        }
+
+        // Logic 2: Load & Save Data
+        function loadData() {
+            const savedDays = localStorage.getItem('bt_workDays');
+            if (savedDays) workDays = JSON.parse(savedDays);
+            
+            inputs.forEach(id => {
+                const val = localStorage.getItem('bt_' + id);
+                if (val !== null) document.getElementById(id).value = val;
+            });
+        }
+
+        function saveData() {
+            inputs.forEach(id => {
+                localStorage.setItem('bt_' + id, document.getElementById(id).value || 0);
+            });
+        }
+
+        // Logic 3: Calculations
+        function calculateMetrics() {
+            const futureOff = parseInt(document.getElementById('futureOff').value) || 0;
+            const futureOT = parseInt(document.getElementById('futureOT').value) || 0;
+            const bre = parseInt(document.getElementById('currentBRE').value) || 0;
+            const sold = parseInt(document.getElementById('currentSold').value) || 0;
+
+            // Shift Calculation
+            const now = new Date();
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            let baseShiftsRemaining = 0;
+            
+            for (let d = now.getDate(); d <= lastDay.getDate(); d++) {
+                const checkDate = new Date(now.getFullYear(), now.getMonth(), d);
+                if (workDays.includes(checkDate.getDay())) {
+                    baseShiftsRemaining++;
+                }
+            }
+            
+            const totalShiftsRemaining = baseShiftsRemaining - futureOff + futureOT;
+            document.getElementById('shiftsRemaining').innerText = Math.max(0, totalShiftsRemaining);
+
+            // Conversion Calculation
+            let conversion = 0;
+            if (bre > 0) conversion = (sold / bre) * 100;
+            document.getElementById('conversionRate').innerText = conversion.toFixed(2) + '%';
+
+            // Target Math: (S + x) / (B + x) = 0.40  => x = (0.4B - S) / 0.6
+            let needed = 0;
+            if (conversion < 40) {
+                needed = Math.ceil((0.40 * bre - sold) / 0.60);
+                document.getElementById('targetMetIcon').style.display = 'none';
+            } else {
+                document.getElementById('targetMetIcon').style.display = 'inline';
+            }
+            document.getElementById('batteriesNeeded').innerText = needed;
+        }
+
+        // Logic 4: Modal Management
+        function setupModalCheckboxes() {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const container = document.getElementById('daysCheckboxes');
+            container.innerHTML = '';
+            
+            days.forEach((day, index) => {
+                const div = document.createElement('div');
+                div.className = 'day-checkbox';
+                div.innerHTML = `<input type="checkbox" id="day_${index}" value="${index}"><label for="day_${index}">${day}</label>`;
+                container.appendChild(div);
+            });
+        }
+
+        function openModal() {
+            document.getElementById('scheduleModal').style.display = 'flex';
+            // Pre-check saved days
+            for (let i = 0; i < 7; i++) {
+                document.getElementById('day_' + i).checked = workDays.includes(i);
+            }
+        }
+
+        function saveSchedule() {
+            workDays = [];
+            for (let i = 0; i < 7; i++) {
+                if (document.getElementById('day_' + i).checked) {
+                    workDays.push(i);
+                }
+            }
+            localStorage.setItem('bt_workDays', JSON.stringify(workDays));
+            document.getElementById('scheduleModal').style.display = 'none';
+            calculateMetrics();
+        }
+
+        // Run on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
