@@ -82,7 +82,7 @@
             max-width: 500px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px; /* Slightly tightened to account for larger fonts */
         }
 
         .header-section {
@@ -92,21 +92,21 @@
         .header-title {
             color: var(--knicks-orange);
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.4rem; /* Largest text on screen */
             margin-bottom: 5px;
             text-transform: uppercase;
         }
         .header-cycle {
             color: var(--knicks-blue);
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1.05rem;
             text-transform: uppercase;
         }
 
         .card {
             background-color: var(--card-dark);
             border-radius: 12px;
-            padding: 20px 15px;
+            padding: 15px 12px;
             border: 1px solid #333;
         }
 
@@ -114,15 +114,15 @@
             color: var(--knicks-orange);
             font-weight: bold;
             text-align: center;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-size: 1.2rem; /* Scaled up */
         }
 
         .input-row {
             display: flex;
             justify-content: space-between;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .input-group {
             flex: 1;
@@ -132,20 +132,20 @@
         }
         .input-group label {
             color: var(--text-light);
-            font-size: 0.85rem;
-            margin-bottom: 5px;
+            font-size: 1.05rem; /* Scaled up significantly */
+            margin-bottom: 3px; /* Tightened space above the box */
             white-space: nowrap; 
         }
         .input-group input {
             width: 100%;
             background-color: transparent;
             border: 2px solid var(--knicks-blue);
-            border-radius: 8px; /* Squared off for better touch targets */
+            border-radius: 8px;
             color: var(--knicks-orange);
-            font-size: 2.2rem; /* Significantly larger font */
+            font-size: 2.2rem; 
             font-weight: bold;
             text-align: center;
-            padding: 8px 0;
+            padding: 2px 0; /* Box shrunken vertically to save space */
             box-sizing: border-box;
             outline: none;
         }
@@ -163,7 +163,7 @@
         }
         .display-label {
             color: var(--knicks-orange);
-            font-size: 0.95rem;
+            font-size: 1.1rem; /* Scaled up */
             font-weight: bold;
             text-align: center;
             text-transform: uppercase;
@@ -176,9 +176,9 @@
             display: block;
             color: var(--knicks-blue);
             text-align: center;
-            font-size: 0.95rem;
+            font-size: 1rem;
             text-decoration: underline;
-            margin-top: 15px;
+            margin-top: 12px;
             cursor: pointer;
         }
     </style>
@@ -231,7 +231,7 @@
                 </div>
             </div>
             <div class="display-value blue-text" id="conversionRate">0.00%</div>
-            <div class="display-label blue-text" style="margin-bottom: 20px;">CONVERSION RATE</div>
+            <div class="display-label blue-text" style="margin-bottom: 15px;">CONVERSION RATE</div>
             
             <div class="display-value" id="batteriesNeeded">0</div>
             <div class="display-label" id="targetLabel">BATTERIES NEEDED FOR 40% <span id="targetMetIcon" style="display:none;">✔</span></div>
@@ -347,7 +347,7 @@
                 if (conversion >= 90) {
                     needed = 0;
                     showCheckmark = 'inline';
-                    targetPercent = 90; // Lock text at 90%
+                    targetPercent = 90; 
                 } else {
                     needed = Math.ceil((targetDec * bre - sold) / (1 - targetDec));
                 }
