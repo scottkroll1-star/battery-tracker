@@ -134,15 +134,15 @@
             color: var(--text-light);
             font-size: 0.85rem;
             margin-bottom: 5px;
-            white-space: nowrap; /* Locks text to a single line */
+            white-space: nowrap; 
         }
         .input-group input {
             width: 100%;
             background-color: transparent;
             border: 2px solid var(--knicks-blue);
-            border-radius: 20px;
+            border-radius: 8px; /* Squared off for better touch targets */
             color: var(--knicks-orange);
-            font-size: 1.4rem;
+            font-size: 2.2rem; /* Significantly larger font */
             font-weight: bold;
             text-align: center;
             padding: 8px 0;
@@ -234,7 +234,7 @@
             <div class="display-label blue-text" style="margin-bottom: 20px;">CONVERSION RATE</div>
             
             <div class="display-value" id="batteriesNeeded">0</div>
-            <div class="display-label">BATTERIES NEEDED FOR 40% <span id="targetMetIcon" style="display:none;">✔</span></div>
+            <div class="display-label" id="targetLabel">BATTERIES NEEDED FOR 40% <span id="targetMetIcon" style="display:none;">✔</span></div>
         </div>
         
     </div>
@@ -265,7 +265,7 @@
             }
         }
 
-        // Logic 1: Month Cycle Management
+        // Month Cycle Management
         function checkMonthCycle() {
             const now = new Date();
             const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -275,12 +275,10 @@
             const cycleText = `${monthNames[now.getMonth()]} 1, ${now.getFullYear()} - ${monthNames[lastDay.getMonth()]} ${lastDay.getDate()}, ${lastDay.getFullYear()}`;
             document.getElementById('cycleDisplay').innerText = cycleText;
 
-            // Check if month rolled over to wipe stats
             const currentMonthStr = `${now.getFullYear()}-${now.getMonth()}`;
             const savedMonthStr = localStorage.getItem('bt_lastMonth');
             
             if (savedMonthStr && savedMonthStr !== currentMonthStr) {
-                // Wipe data, keep schedule
                 localStorage.setItem('bt_futureOff', '0');
                 localStorage.setItem('bt_futureOT', '0');
                 localStorage.setItem('bt_currentBRE', '0');
@@ -289,7 +287,7 @@
             localStorage.setItem('bt_lastMonth', currentMonthStr);
         }
 
-        // Logic 2: Load & Save Data
+        // Load & Save Data
         function loadData() {
             const savedDays = localStorage.getItem('bt_workDays');
             if (savedDays) workDays = JSON.parse(savedDays);
@@ -306,7 +304,7 @@
             });
         }
 
-        // Logic 3: Calculations
+        // Calculations
         function calculateMetrics() {
             const futureOff = parseInt(document.getElementById('futureOff').value) || 0;
             const futureOT = parseInt(document.getElementById('futureOT').value) || 0;
@@ -333,18 +331,33 @@
             if (bre > 0) conversion = (sold / bre) * 100;
             document.getElementById('conversionRate').innerText = conversion.toFixed(2) + '%';
 
-            // Target Math: (S + x) / (B + x) = 0.40  => x = (0.4B - S) / 0.6
+            // Dynamic Stretch Goal Math
+            let targetPercent = 40;
+            if (conversion >= 40) targetPercent = 50;
+            if (conversion >= 50) targetPercent = 60;
+            if (conversion >= 60) targetPercent = 70;
+            if (conversion >= 70) targetPercent = 80;
+            if (conversion >= 80) targetPercent = 90;
+
+            let targetDec = targetPercent / 100;
             let needed = 0;
-            if (conversion < 40) {
-                needed = Math.ceil((0.40 * bre - sold) / 0.60);
-                document.getElementById('targetMetIcon').style.display = 'none';
-            } else {
-                document.getElementById('targetMetIcon').style.display = 'inline';
+            let showCheckmark = 'none';
+
+            if (bre > 0) {
+                if (conversion >= 90) {
+                    needed = 0;
+                    showCheckmark = 'inline';
+                    targetPercent = 90; // Lock text at 90%
+                } else {
+                    needed = Math.ceil((targetDec * bre - sold) / (1 - targetDec));
+                }
             }
+
             document.getElementById('batteriesNeeded').innerText = needed;
+            document.getElementById('targetLabel').innerHTML = `BATTERIES NEEDED FOR ${targetPercent}% <span id="targetMetIcon" style="display:${showCheckmark};">✔</span>`;
         }
 
-        // Logic 4: Modal Management
+        // Modal Management
         function setupModalCheckboxes() {
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const container = document.getElementById('daysCheckboxes');
